@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCHRI Work Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-sidebar: #0f172a;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .layout { display: flex; min-height: 100vh; }
+
+        .sidebar {
+            width: 250px;
+            background: var(--bg-sidebar);
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+            padding: 10px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .logo-text { font-weight: 700; font-size: 1.1rem; }
+        .logo-sub { font-size: 0.7rem; color: var(--text-light); }
+
+        .nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+
+        .nav-section {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-light);
+            padding: 20px 12px 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-light);
+            font-weight: 500;
+            font-size: 0.9rem;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active { background: var(--primary); color: white; }
+        .nav-item .icon { font-size: 1.1rem; width: 22px; text-align: center; }
+        .nav-item .badge {
+            margin-left: auto;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+        .sync-dot.syncing { background: var(--warning); animation: pulse 1s infinite; }
+        .sync-dot.error { background: var(--danger); }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+        /* Main */
+        .main {
+            flex: 1;
+            margin-left: 250px;
+            padding: 24px;
+            max-width: 1200px;
+        }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-title { font-size: 1.6rem; font-weight: 800; }
+        .page-subtitle { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-card .value { font-size: 1.8rem; font-weight: 700; }
+        .stat-card .value.success { color: var(--success); }
+        .stat-card .value.warning { color: var(--warning); }
+        .stat-card .value.danger { color: var(--danger); }
+        .stat-card .sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .card-body { padding: 20px; }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-danger { background: #fee2e2; color: var(--danger); }
+        .btn-success { background: #dcfce7; color: var(--success); }
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(14,165,233,0.1);
+        }
+
+        .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 14px 10px 40px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+        }
+
+        /* Filter chips */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-chip:hover { border-color: var(--primary); }
+        .filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Task List */
+        .task-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+
+        .task-item:hover { border-color: var(--primary); }
+        .task-item.completed { opacity: 0.6; }
+        .task-item.completed .task-text { text-decoration: line-through; }
+
+        .task-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .task-checkbox:hover { border-color: var(--primary); }
+        .task-checkbox.checked { background: var(--success); border-color: var(--success); color: white; }
+
+        .task-content { flex: 1; min-width: 0; }
+        .task-text { font-weight: 500; }
+        .task-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 12px; margin-top: 2px; }
+
+        .task-priority {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .task-priority.high { background: #fee2e2; color: var(--danger); }
+        .task-priority.medium { background: #fef3c7; color: var(--warning); }
+        .task-priority.low { background: #e0f2fe; color: var(--primary); }
+
+        .task-actions { display: flex; gap: 6px; }
+
+        /* Contract List */
+        .contract-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .contract-item:hover { border-color: var(--primary); transform: translateX(4px); }
+        .contract-item.pinned { border-left: 4px solid var(--warning); }
+
+        .contract-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .contract-info { flex: 1; min-width: 0; }
+        .contract-fas { font-weight: 700; font-size: 1rem; }
+        .contract-details { font-size: 0.85rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+        .contract-type {
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #e0f2fe;
+            color: var(--primary);
+        }
+
+        .contract-actions { display: flex; gap: 8px; align-items: center; }
+        .pin-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.4;
+            transition: all 0.2s;
+        }
+        .pin-btn:hover { opacity: 1; }
+        .pin-btn.pinned { opacity: 1; color: var(--warning); }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 60px 16px;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 { font-size: 1.1rem; font-weight: 700; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
+        .modal-body { padding: 20px; }
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Scan Folder */
+        .scan-area {
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .scan-area textarea {
+            width: 100%;
+            min-height: 120px;
+            border: none;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .scan-area textarea:focus { outline: none; }
+
+        .scan-results {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .scan-result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .scan-result-item .fas { font-weight: 700; color: var(--primary); }
+
+        /* Quick Add */
+        .quick-add {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .quick-add input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        /* Dashboard cards */
+        .dash-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .activity-item:last-child { border-bottom: none; }
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .activity-icon.task { background: #dcfce7; }
+        .activity-icon.contract { background: #e0f2fe; }
+        .activity-info { flex: 1; }
+        .activity-title { font-weight: 500; font-size: 0.9rem; }
+        .activity-sub { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.4; }
+        .empty-state h3 { color: var(--text); margin-bottom: 4px; }
+
+        /* Responsive */
+        @media (max-width: 800px) {
+            .sidebar { width: 60px; padding: 12px; }
+            .logo-text, .logo-sub, .nav-item span:not(.icon), .nav-section, .sync-status span { display: none; }
+            .nav-item { justify-content: center; padding: 12px; }
+            .main { margin-left: 60px; }
+            .sync-status { justify-content: center; }
+        }
+
+        @media (max-width: 600px) {
+            .form-row { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🏥</div>
+            <div>
+                <div class="logo-text">VCHRI</div>
+                <div class="logo-sub">Work Hub</div>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <button class="nav-item active" data-page="dashboard">
+                <span class="icon">🏠</span>
+                <span>Dashboard</span>
+            </button>
+
+            <div class="nav-section">Work</div>
+            <button class="nav-item" data-page="tasks">
+                <span class="icon">✅</span>
+                <span>Tasks</span>
+                <span class="badge" id="nav-tasks-count">0</span>
+            </button>
+            <button class="nav-item" data-page="contracts">
+                <span class="icon">📄</span>
+                <span>Contracts</span>
+                <span class="badge" id="nav-contracts-count">0</span>
+            </button>
+
+            <div class="nav-section">Tools</div>
+            <button class="nav-item" data-page="scan">
+                <span class="icon">📂</span>
+                <span>Scan Folder</span>
+            </button>
+            <button class="nav-item" data-page="settings">
+                <span class="icon">⚙️</span>
+                <span>Settings</span>
+            </button>
+        </nav>
+
+        <div class="sync-status">
+            <span class="sync-dot" id="sync-dot"></span>
+            <span id="sync-text">Synced</span>
+        </div>
+    </aside>
+
+    <main class="main">
+        <!-- Dashboard -->
+        <div class="page active" id="page-dashboard">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Welcome back! Here's your work overview.</p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">✅ Tasks Today</div>
+                    <div class="value" id="dash-tasks-today">0</div>
+                    <div class="sub" id="dash-tasks-today-sub">0 completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">📋 Open Tasks</div>
+                    <div class="value" id="dash-open-tasks">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">📄 Active Contracts</div>
+                    <div class="value" id="dash-contracts">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">📌 Pinned</div>
+                    <div class="value warning" id="dash-pinned">0</div>
+                </div>
+            </div>
+
+            <div class="dash-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📋 Today's Tasks</div>
+                        <button class="btn btn-sm btn-secondary" onclick="showPage('tasks')">View All</button>
+                    </div>
+                    <div class="card-body" id="dash-tasks-list"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📌 Pinned Contracts</div>
+                        <button class="btn btn-sm btn-secondary" onclick="showPage('contracts')">View All</button>
+                    </div>
+                    <div class="card-body" id="dash-pinned-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="page" id="page-tasks">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Tasks</h1>
+                    <p class="page-subtitle">Manage your daily tasks</p>
+                </div>
+                <button class="btn btn-primary" onclick="openTaskModal()">+ Add Task</button>
+            </div>
+
+            <div class="quick-add">
+                <input type="text" id="quick-task-input" placeholder="Quick add task... (press Enter)" onkeydown="if(event.key==='Enter')quickAddTask()">
+                <button class="btn btn-primary" onclick="quickAddTask()">Add</button>
+            </div>
+
+            <div class="filter-bar" id="task-filters"></div>
+
+            <div class="task-list" id="task-list"></div>
+        </div>
+
+        <!-- Contracts -->
+        <div class="page" id="page-contracts">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Contracts</h1>
+                    <p class="page-subtitle">Track research agreements</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="showPage('scan')">📂 Scan Folder</button>
+                    <button class="btn btn-primary" onclick="openContractModal()">+ Add Contract</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="contract-search" placeholder="Search contracts..." oninput="renderContracts()">
+                </div>
+            </div>
+
+            <div class="filter-bar" id="contract-filters"></div>
+
+            <div id="contract-list"></div>
+        </div>
+
+        <!-- Scan Folder -->
+        <div class="page" id="page-scan">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Scan Folder</h1>
+                    <p class="page-subtitle">Paste folder names to extract contract info</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="scan-area">
+                        <textarea id="scan-input" placeholder="Paste folder names here (one per line)...
+
+Example formats:
+FAS12345 - CTA - Sponsor Name - PI Name - CRO Name
+FAS12345_CTA_Sponsor_PI_CRO
+12345 CTA Sponsor PI CRO"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="scanFolders()" style="width: 100%;">🔍 Parse Folders</button>
+                </div>
+            </div>
+
+            <div class="card" id="scan-results-card" style="display: none;">
+                <div class="card-header">
+                    <div class="card-title">📋 Parsed Results</div>
+                    <button class="btn btn-sm btn-success" onclick="importScannedContracts()">Import All</button>
+                </div>
+                <div class="card-body">
+                    <div class="scan-results" id="scan-results"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="page" id="page-settings">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Settings</h1>
+                    <p class="page-subtitle">Configure your work hub</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📁 Task Categories</div>
+                </div>
+                <div class="card-body">
+                    <div id="settings-task-categories"></div>
+                    <div style="display: flex; gap: 10px; margin-top: 12px;">
+                        <input type="text" id="new-task-category" placeholder="New category" style="flex: 1;">
+                        <button class="btn btn-primary btn-sm" onclick="addTaskCategory()">Add</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📄 Contract Types</div>
+                </div>
+                <div class="card-body">
+                    <div id="settings-contract-types"></div>
+                    <div style="display: flex; gap: 10px; margin-top: 12px;">
+                        <input type="text" id="new-contract-type" placeholder="New contract type" style="flex: 1;">
+                        <button class="btn btn-primary btn-sm" onclick="addContractType()">Add</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">💾 Data</div>
+                </div>
+                <div class="card-body">
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" onclick="exportAllData()">📤 Export All</button>
+                        <label class="btn btn-secondary" style="cursor: pointer;">
+                            📥 Import
+                            <input type="file" accept=".json" style="display: none;" onchange="importAllData(event)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Task Modal -->
+<div class="modal-overlay" id="task-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="task-modal-title">Add Task</h2>
+            <button class="modal-close" onclick="closeTaskModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="task-id">
+            <div class="form-group">
+                <label>Task *</label>
+                <input type="text" id="task-text" placeholder="What needs to be done?">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="task-category"></select>
+                </div>
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select id="task-priority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Due Date</label>
+                <input type="date" id="task-due">
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea id="task-notes" rows="2" placeholder="Optional notes..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" id="task-delete-btn" style="display:none; margin-right:auto;" onclick="deleteTask()">Delete</button>
+            <button class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveTask()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Contract Modal -->
+<div class="modal-overlay" id="contract-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="contract-modal-title">Add Contract</h2>
+            <button class="modal-close" onclick="closeContractModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="contract-id">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>FAS # *</label>
+                    <input type="text" id="contract-fas" placeholder="FAS12345">
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="contract-type"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Sponsor</label>
+                <input type="text" id="contract-sponsor" placeholder="Sponsor name">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>PI</label>
+                    <input type="text" id="contract-pi" placeholder="Principal Investigator">
+                </div>
+                <div class="form-group">
+                    <label>CRO</label>
+                    <input type="text" id="contract-cro" placeholder="CRO name">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea id="contract-notes" rows="2" placeholder="Optional notes..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" id="contract-delete-btn" style="display:none; margin-right:auto;" onclick="deleteContract()">Delete</button>
+            <button class="btn btn-secondary" onclick="closeContractModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveContract()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+// Firebase
+firebase.initializeApp({
+    apiKey: "AIzaSyDtU3Vyn54GRCwTUVlRqH6ehVqQ7TUEFqc",
+    authDomain: "pjs-apps.firebaseapp.com",
+    projectId: "pjs-apps",
+    storageBucket: "pjs-apps.firebasestorage.app",
+    messagingSenderId: "315953304498",
+    appId: "1:315953304498:web:vchri2026"
+});
+const db = firebase.firestore();
+
+// State
+let tasks = [];
+let contracts = [];
+let taskCategories = [];
+let contractTypes = [];
+let pinnedContracts = JSON.parse(localStorage.getItem('vchri_pinned') || '[]');
+let taskFilter = 'All';
+let contractFilter = 'All';
+let scannedContracts = [];
+
+// Sync status
+const syncDot = document.getElementById('sync-dot');
+const syncText = document.getElementById('sync-text');
+function setSynced() { syncDot.className = 'sync-dot'; syncText.textContent = 'Synced'; }
+function setSyncing() { syncDot.className = 'sync-dot syncing'; syncText.textContent = 'Syncing...'; }
+function setError() { syncDot.className = 'sync-dot error'; syncText.textContent = 'Error'; }
+
+// Navigation
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => showPage(item.dataset.page));
+});
+
+function showPage(page) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(`page-${page}`).classList.add('active');
+}
+
+// Firestore listeners
+db.collection('planner_tasks').orderBy('createdAt', 'desc').onSnapshot(snap => {
+    tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+    setSynced();
+}, err => { console.error(err); setError(); });
+
+db.collection('planner_categories').orderBy('order', 'asc').onSnapshot(snap => {
+    taskCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (taskCategories.length === 0) {
+        ['General', 'Contracts', 'Meetings', 'Follow-up'].forEach((name, i) => {
+            db.collection('planner_categories').add({ name, order: i });
+        });
+    }
+    renderAll();
+}, err => console.error(err));
+
+db.collection('contracts').orderBy('createdAt', 'desc').onSnapshot(snap => {
+    contracts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+    setSynced();
+}, err => { console.error(err); setError(); });
+
+db.collection('contract_types').orderBy('order', 'asc').onSnapshot(snap => {
+    contractTypes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (contractTypes.length === 0) {
+        ['CTA', 'DUA', 'MTA', 'SRA', 'Other'].forEach((name, i) => {
+            db.collection('contract_types').add({ name, order: i });
+        });
+    }
+    renderAll();
+}, err => console.error(err));
+
+// Render all
+function renderAll() {
+    renderDashboard();
+    renderTasks();
+    renderContracts();
+    renderSettings();
+    document.getElementById('nav-tasks-count').textContent = tasks.filter(t => !t.completed).length;
+    document.getElementById('nav-contracts-count').textContent = contracts.length;
+}
+
+// Dashboard
+function renderDashboard() {
+    const today = new Date().toISOString().split('T')[0];
+    const todayTasks = tasks.filter(t => t.dueDate === today);
+    const completedToday = todayTasks.filter(t => t.completed).length;
+    const openTasks = tasks.filter(t => !t.completed).length;
+    const pinned = contracts.filter(c => pinnedContracts.includes(c.id));
+
+    document.getElementById('dash-tasks-today').textContent = todayTasks.length;
+    document.getElementById('dash-tasks-today-sub').textContent = completedToday + ' completed';
+    document.getElementById('dash-open-tasks').textContent = openTasks;
+    document.getElementById('dash-contracts').textContent = contracts.length;
+    document.getElementById('dash-pinned').textContent = pinned.length;
+
+    // Today's tasks
+    const tasksList = document.getElementById('dash-tasks-list');
+    if (todayTasks.length === 0) {
+        tasksList.innerHTML = '<div class="empty-state" style="padding:20px;"><p>No tasks for today</p></div>';
+    } else {
+        tasksList.innerHTML = todayTasks.slice(0, 5).map(t => `
+            <div class="activity-item">
+                <div class="activity-icon task">${t.completed ? '✅' : '📋'}</div>
+                <div class="activity-info">
+                    <div class="activity-title" style="${t.completed ? 'text-decoration:line-through;opacity:0.6;' : ''}">${t.text}</div>
+                    <div class="activity-sub">${t.category || 'General'}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Pinned contracts
+    const pinnedList = document.getElementById('dash-pinned-list');
+    if (pinned.length === 0) {
+        pinnedList.innerHTML = '<div class="empty-state" style="padding:20px;"><p>No pinned contracts</p></div>';
+    } else {
+        pinnedList.innerHTML = pinned.slice(0, 5).map(c => `
+            <div class="activity-item">
+                <div class="activity-icon contract">📄</div>
+                <div class="activity-info">
+                    <div class="activity-title">${c.fas}</div>
+                    <div class="activity-sub">${c.type || ''} ${c.sponsor ? '• ' + c.sponsor : ''}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+// Tasks
+function renderTasks() {
+    // Filters
+    const cats = ['All', ...taskCategories.map(c => c.name)];
+    document.getElementById('task-filters').innerHTML = cats.map(c =>
+        `<button class="filter-chip ${c === taskFilter ? 'active' : ''}" onclick="setTaskFilter('${c}')">${c}</button>`
+    ).join('');
+
+    // Task list
+    let filtered = tasks;
+    if (taskFilter !== 'All') {
+        filtered = tasks.filter(t => t.category === taskFilter);
+    }
+
+    const list = document.getElementById('task-list');
+    if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="icon">✅</div><h3>No tasks</h3><p>Add a task to get started</p></div>';
+        return;
+    }
+
+    // Sort: incomplete first, then by priority, then by date
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    filtered.sort((a, b) => {
+        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+        if (priorityOrder[a.priority] !== priorityOrder[b.priority]) return priorityOrder[a.priority] - priorityOrder[b.priority];
+        return 0;
+    });
+
+    list.innerHTML = filtered.map(t => `
+        <div class="task-item ${t.completed ? 'completed' : ''}">
+            <div class="task-checkbox ${t.completed ? 'checked' : ''}" onclick="toggleTask('${t.id}')">
+                ${t.completed ? '✓' : ''}
+            </div>
+            <div class="task-content" onclick="openTaskModal('${t.id}')">
+                <div class="task-text">${t.text}</div>
+                <div class="task-meta">
+                    <span>${t.category || 'General'}</span>
+                    ${t.dueDate ? '<span>📅 ' + formatDate(t.dueDate) + '</span>' : ''}
+                </div>
+            </div>
+            <span class="task-priority ${t.priority || 'medium'}">${t.priority || 'medium'}</span>
+        </div>
+    `).join('');
+}
+
+function setTaskFilter(f) {
+    taskFilter = f;
+    renderTasks();
+}
+
+function quickAddTask() {
+    const input = document.getElementById('quick-task-input');
+    const text = input.value.trim();
+    if (!text) return;
+    setSyncing();
+    db.collection('planner_tasks').add({
+        text,
+        category: 'General',
+        priority: 'medium',
+        completed: false,
+        createdAt: new Date().toISOString()
+    });
+    input.value = '';
+}
+
+async function toggleTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    setSyncing();
+    await db.collection('planner_tasks').doc(id).update({ completed: !task.completed });
+}
+
+function openTaskModal(id = null) {
+    document.getElementById('task-category').innerHTML = taskCategories.map(c =>
+        `<option value="${c.name}">${c.name}</option>`
+    ).join('');
+
+    if (id) {
+        const t = tasks.find(x => x.id === id);
+        if (!t) return;
+        document.getElementById('task-modal-title').textContent = 'Edit Task';
+        document.getElementById('task-delete-btn').style.display = 'block';
+        document.getElementById('task-id').value = id;
+        document.getElementById('task-text').value = t.text;
+        document.getElementById('task-category').value = t.category || 'General';
+        document.getElementById('task-priority').value = t.priority || 'medium';
+        document.getElementById('task-due').value = t.dueDate || '';
+        document.getElementById('task-notes').value = t.notes || '';
+    } else {
+        document.getElementById('task-modal-title').textContent = 'Add Task';
+        document.getElementById('task-delete-btn').style.display = 'none';
+        document.getElementById('task-id').value = '';
+        document.getElementById('task-text').value = '';
+        document.getElementById('task-category').value = taskCategories[0]?.name || 'General';
+        document.getElementById('task-priority').value = 'medium';
+        document.getElementById('task-due').value = '';
+        document.getElementById('task-notes').value = '';
+    }
+    document.getElementById('task-modal').classList.add('active');
+}
+
+function closeTaskModal() {
+    document.getElementById('task-modal').classList.remove('active');
+}
+
+async function saveTask() {
+    const id = document.getElementById('task-id').value;
+    const text = document.getElementById('task-text').value.trim();
+    if (!text) { alert('Please enter a task'); return; }
+
+    const data = {
+        text,
+        category: document.getElementById('task-category').value,
+        priority: document.getElementById('task-priority').value,
+        dueDate: document.getElementById('task-due').value || null,
+        notes: document.getElementById('task-notes').value,
+        updatedAt: new Date().toISOString()
+    };
+
+    setSyncing();
+    if (id) {
+        await db.collection('planner_tasks').doc(id).update(data);
+    } else {
+        data.completed = false;
+        data.createdAt = new Date().toISOString();
+        await db.collection('planner_tasks').add(data);
+    }
+    closeTaskModal();
+}
+
+async function deleteTask() {
+    const id = document.getElementById('task-id').value;
+    if (!id || !confirm('Delete this task?')) return;
+    setSyncing();
+    await db.collection('planner_tasks').doc(id).delete();
+    closeTaskModal();
+}
+
+// Contracts
+function renderContracts() {
+    // Filters
+    const types = ['All', ...contractTypes.map(c => c.name)];
+    document.getElementById('contract-filters').innerHTML = types.map(t =>
+        `<button class="filter-chip ${t === contractFilter ? 'active' : ''}" onclick="setContractFilter('${t}')">${t}</button>`
+    ).join('');
+
+    // Contract list
+    let filtered = contracts;
+    const search = document.getElementById('contract-search').value.toLowerCase();
+    if (search) {
+        filtered = filtered.filter(c =>
+            c.fas.toLowerCase().includes(search) ||
+            (c.sponsor || '').toLowerCase().includes(search) ||
+            (c.pi || '').toLowerCase().includes(search)
+        );
+    }
+    if (contractFilter !== 'All') {
+        filtered = filtered.filter(c => c.type === contractFilter);
+    }
+
+    // Sort: pinned first
+    filtered.sort((a, b) => {
+        const aPin = pinnedContracts.includes(a.id);
+        const bPin = pinnedContracts.includes(b.id);
+        if (aPin !== bPin) return aPin ? -1 : 1;
+        return 0;
+    });
+
+    const list = document.getElementById('contract-list');
+    if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="icon">📄</div><h3>No contracts</h3><p>Add a contract or use Scan Folder</p></div>';
+        return;
+    }
+
+    list.innerHTML = filtered.map(c => {
+        const isPinned = pinnedContracts.includes(c.id);
+        return `
+            <div class="contract-item ${isPinned ? 'pinned' : ''}" onclick="openContractModal('${c.id}')">
+                <div class="contract-icon">📄</div>
+                <div class="contract-info">
+                    <div class="contract-fas">${c.fas}</div>
+                    <div class="contract-details">
+                        ${c.type ? `<span class="contract-type">${c.type}</span>` : ''}
+                        ${c.sponsor ? `<span>${c.sponsor}</span>` : ''}
+                        ${c.pi ? `<span>PI: ${c.pi}</span>` : ''}
+                    </div>
+                </div>
+                <div class="contract-actions">
+                    <button class="pin-btn ${isPinned ? 'pinned' : ''}" onclick="event.stopPropagation(); togglePin('${c.id}')">📌</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function setContractFilter(f) {
+    contractFilter = f;
+    renderContracts();
+}
+
+function togglePin(id) {
+    if (pinnedContracts.includes(id)) {
+        pinnedContracts = pinnedContracts.filter(x => x !== id);
+    } else {
+        pinnedContracts.push(id);
+    }
+    localStorage.setItem('vchri_pinned', JSON.stringify(pinnedContracts));
+    renderAll();
+}
+
+function openContractModal(id = null) {
+    document.getElementById('contract-type').innerHTML = contractTypes.map(t =>
+        `<option value="${t.name}">${t.name}</option>`
+    ).join('');
+
+    if (id) {
+        const c = contracts.find(x => x.id === id);
+        if (!c) return;
+        document.getElementById('contract-modal-title').textContent = 'Edit Contract';
+        document.getElementById('contract-delete-btn').style.display = 'block';
+        document.getElementById('contract-id').value = id;
+        document.getElementById('contract-fas').value = c.fas;
+        document.getElementById('contract-type').value = c.type || contractTypes[0]?.name || '';
+        document.getElementById('contract-sponsor').value = c.sponsor || '';
+        document.getElementById('contract-pi').value = c.pi || '';
+        document.getElementById('contract-cro').value = c.cro || '';
+        document.getElementById('contract-notes').value = c.notes || '';
+    } else {
+        document.getElementById('contract-modal-title').textContent = 'Add Contract';
+        document.getElementById('contract-delete-btn').style.display = 'none';
+        document.getElementById('contract-id').value = '';
+        document.getElementById('contract-fas').value = '';
+        document.getElementById('contract-type').value = contractTypes[0]?.name || '';
+        document.getElementById('contract-sponsor').value = '';
+        document.getElementById('contract-pi').value = '';
+        document.getElementById('contract-cro').value = '';
+        document.getElementById('contract-notes').value = '';
+    }
+    document.getElementById('contract-modal').classList.add('active');
+}
+
+function closeContractModal() {
+    document.getElementById('contract-modal').classList.remove('active');
+}
+
+async function saveContract() {
+    const id = document.getElementById('contract-id').value;
+    const fas = document.getElementById('contract-fas').value.trim();
+    if (!fas) { alert('Please enter FAS #'); return; }
+
+    const data = {
+        fas,
+        type: document.getElementById('contract-type').value,
+        sponsor: document.getElementById('contract-sponsor').value,
+        pi: document.getElementById('contract-pi').value,
+        cro: document.getElementById('contract-cro').value,
+        notes: document.getElementById('contract-notes').value,
+        updatedAt: new Date().toISOString()
+    };
+
+    setSyncing();
+    if (id) {
+        await db.collection('contracts').doc(id).update(data);
+    } else {
+        data.createdAt = new Date().toISOString();
+        await db.collection('contracts').add(data);
+    }
+    closeContractModal();
+}
+
+async function deleteContract() {
+    const id = document.getElementById('contract-id').value;
+    if (!id || !confirm('Delete this contract?')) return;
+    setSyncing();
+    await db.collection('contracts').doc(id).delete();
+    closeContractModal();
+}
+
+// Scan Folder
+function scanFolders() {
+    const input = document.getElementById('scan-input').value;
+    const lines = input.split('\n').filter(l => l.trim());
+    
+    scannedContracts = lines.map(line => {
+        const parts = line.split(/[-_\s]+/).filter(p => p.trim());
+        let fas = '', type = '', sponsor = '', pi = '', cro = '';
+
+        for (const part of parts) {
+            const p = part.trim();
+            if (/^(FAS)?\d{5,}$/i.test(p)) {
+                fas = p.toUpperCase().startsWith('FAS') ? p.toUpperCase() : 'FAS' + p;
+            } else if (contractTypes.some(t => t.name.toLowerCase() === p.toLowerCase())) {
+                type = contractTypes.find(t => t.name.toLowerCase() === p.toLowerCase()).name;
+            } else if (!sponsor) {
+                sponsor = p;
+            } else if (!pi) {
+                pi = p;
+            } else if (!cro) {
+                cro = p;
+            }
+        }
+
+        return { fas, type, sponsor, pi, cro, raw: line };
+    }).filter(c => c.fas);
+
+    if (scannedContracts.length === 0) {
+        alert('No valid contracts found. Make sure each line contains a FAS number.');
+        return;
+    }
+
+    document.getElementById('scan-results-card').style.display = 'block';
+    document.getElementById('scan-results').innerHTML = scannedContracts.map((c, i) => `
+        <div class="scan-result-item">
+            <span class="fas">${c.fas}</span>
+            <span>${c.type || '—'}</span>
+            <span>${c.sponsor || '—'}</span>
+            <span>${c.pi || '—'}</span>
+            <span>${c.cro || '—'}</span>
+        </div>
+    `).join('');
+}
+
+async function importScannedContracts() {
+    if (scannedContracts.length === 0) return;
+    if (!confirm(`Import ${scannedContracts.length} contracts?`)) return;
+
+    setSyncing();
+    const batch = db.batch();
+    const existingFas = new Set(contracts.map(c => c.fas.toUpperCase()));
+
+    let imported = 0;
+    scannedContracts.forEach(c => {
+        if (!existingFas.has(c.fas.toUpperCase())) {
+            const ref = db.collection('contracts').doc();
+            batch.set(ref, {
+                fas: c.fas,
+                type: c.type || '',
+                sponsor: c.sponsor || '',
+                pi: c.pi || '',
+                cro: c.cro || '',
+                createdAt: new Date().toISOString()
+            });
+            imported++;
+        }
+    });
+
+    await batch.commit();
+    alert(`Imported ${imported} new contracts. ${scannedContracts.length - imported} duplicates skipped.`);
+    document.getElementById('scan-input').value = '';
+    document.getElementById('scan-results-card').style.display = 'none';
+    scannedContracts = [];
+    showPage('contracts');
+}
+
+// Settings
+function renderSettings() {
+    // Task categories
+    document.getElementById('settings-task-categories').innerHTML = taskCategories.map((c, i) => `
+        <div style="display:flex; gap:10px; margin-bottom:8px; align-items:center;">
+            <input type="text" value="${c.name}" onchange="updateTaskCategory('${c.id}', this.value)" style="flex:1;">
+            ${taskCategories.length > 1 ? `<button class="btn btn-sm btn-danger" onclick="deleteTaskCategory('${c.id}')">×</button>` : ''}
+        </div>
+    `).join('');
+
+    // Contract types
+    document.getElementById('settings-contract-types').innerHTML = contractTypes.map((t, i) => `
+        <div style="display:flex; gap:10px; margin-bottom:8px; align-items:center;">
+            <input type="text" value="${t.name}" onchange="updateContractType('${t.id}', this.value)" style="flex:1;">
+            ${contractTypes.length > 1 ? `<button class="btn btn-sm btn-danger" onclick="deleteContractType('${t.id}')">×</button>` : ''}
+        </div>
+    `).join('');
+}
+
+async function addTaskCategory() {
+    const input = document.getElementById('new-task-category');
+    const name = input.value.trim();
+    if (!name) return;
+    setSyncing();
+    await db.collection('planner_categories').add({ name, order: taskCategories.length });
+    input.value = '';
+}
+
+async function updateTaskCategory(id, name) {
+    if (!name.trim()) return;
+    setSyncing();
+    await db.collection('planner_categories').doc(id).update({ name: name.trim() });
+}
+
+async function deleteTaskCategory(id) {
+    if (!confirm('Delete this category?')) return;
+    setSyncing();
+    await db.collection('planner_categories').doc(id).delete();
+}
+
+async function addContractType() {
+    const input = document.getElementById('new-contract-type');
+    const name = input.value.trim();
+    if (!name) return;
+    setSyncing();
+    await db.collection('contract_types').add({ name, order: contractTypes.length });
+    input.value = '';
+}
+
+async function updateContractType(id, name) {
+    if (!name.trim()) return;
+    setSyncing();
+    await db.collection('contract_types').doc(id).update({ name: name.trim() });
+}
+
+async function deleteContractType(id) {
+    if (!confirm('Delete this contract type?')) return;
+    setSyncing();
+    await db.collection('contract_types').doc(id).delete();
+}
+
+// Export/Import
+function exportAllData() {
+    const data = {
+        version: 1,
+        exportDate: new Date().toISOString(),
+        tasks,
+        taskCategories,
+        contracts,
+        contractTypes
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vchri-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+async function importAllData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!confirm(`Import ${data.tasks?.length || 0} tasks and ${data.contracts?.length || 0} contracts?`)) return;
+            setSyncing();
+            const batch = db.batch();
+            (data.tasks || []).forEach(t => { const { id, ...rest } = t; batch.set(db.collection('planner_tasks').doc(), { ...rest, importedAt: new Date().toISOString() }); });
+            (data.contracts || []).forEach(c => { const { id, ...rest } = c; batch.set(db.collection('contracts').doc(), { ...rest, importedAt: new Date().toISOString() }); });
+            await batch.commit();
+            alert('Import complete!');
+        } catch (err) { alert('Import failed: ' + err.message); }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+}
+
+// Utils
+function formatDate(d) {
+    if (!d) return '';
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+</script>
+</body>
+</html>
