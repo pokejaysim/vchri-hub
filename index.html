@@ -934,7 +934,7 @@ db.collection('planner_tasks').orderBy('createdAt', 'desc').onSnapshot(snap => {
 db.collection('planner_categories').orderBy('order', 'asc').onSnapshot(snap => {
     taskCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (taskCategories.length === 0) {
-        ['General', 'Contracts', 'Meetings', 'Follow-up'].forEach((name, i) => {
+        ['VCHRI', 'Contracts', 'Meetings', 'Follow-up', 'General'].forEach((name, i) => {
             db.collection('planner_categories').add({ name, order: i });
         });
     }
@@ -1107,7 +1107,7 @@ function openTaskModal(id = null) {
         document.getElementById('task-delete-btn').style.display = 'none';
         document.getElementById('task-id').value = '';
         document.getElementById('task-text').value = '';
-        document.getElementById('task-category').value = taskCategories[0]?.name || 'General';
+        document.getElementById('task-category').value = 'VCHRI';
         document.getElementById('task-priority').value = 'medium';
         document.getElementById('task-due').value = '';
         document.getElementById('task-notes').value = '';
